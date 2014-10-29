@@ -7,7 +7,7 @@ module Logged
     config.logged = Configuration.new
 
     initializer :logged do |app|
-      Logged.setup(app)
+      Logged.setup(app) if app.config.logged.enabled
     end
   end
 end

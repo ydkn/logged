@@ -13,7 +13,7 @@ module Logged
   extend Logged::LevelConversion
 
   # special keys which not represent a component
-  CONFIG_KEYS = %i( loggers level formatter ignore custom_ignore custom_data tags )
+  CONFIG_KEYS = %i( enabled loggers level formatter ignore custom_ignore custom_data tags )
 
   mattr_accessor :app, :config
 
@@ -25,22 +25,11 @@ module Logged
     app.config.middleware.insert_after ::Rails::Rack::Logger, Logged::Rack::Logger
 
     components.each do |component|
+      next unless config[component].enabled
+
       remove_rails_subscriber(component) if config[component].disable_rails_logger
 
-      loggers = loggers_for(component)
-
-      loggers.each do |logger, options|
-        level = options[:level] || config[component].level || default_level
-
-        logger.level = level_to_const(level) if logger.respond_to?(:'level=')
-      end
-
-      # only attach subscribers with loggers
-      if loggers.any?
-        @subscribers[component].each do |subscriber|
-          subscriber.attach_to(component)
-        end
-      end
+      enable_component(component)
     end
   end
 
@@ -60,7 +49,11 @@ module Logged
 
     loggers = loggers_for(component)
 
-    return nil if loggers.blank?
+    if loggers.blank?
+      @component_loggers[component] = nil
+
+      return nil
+    end
 
     formatter = config[component].formatter || default_formatter
 
@@ -77,7 +70,11 @@ module Logged
   def self.loggers_from_config(conf)
     loggers = {}
 
+    return loggers unless conf.enabled
+
     conf.loggers.each do |name, c|
+      next unless c.enabled
+
       options = c.dup
       options[:name] = name
 
@@ -91,8 +88,27 @@ module Logged
     loggers
   end
 
+  def self.enable_component(component)
+    loggers = loggers_for(component)
+
+    loggers.each do |logger, options|
+      level = options[:level] || config[component].level || default_level
+
+      logger.level = level_to_const(level) if logger.respond_to?(:'level=')
+    end
+
+    # only attach subscribers with loggers
+    if loggers.any?
+      @subscribers[component].each do |subscriber|
+        subscriber.attach_to(component)
+      end
+    end
+  end
+
   # check if event should be ignored
   def self.ignore?(conf, event)
+    return true unless conf.enabled
+
     if !event.is_a?(String) && conf.ignore.is_a?(Array)
       return true if conf.ignore.include?(event.name)
     end
@@ -106,6 +122,8 @@ module Logged
 
   # run data callbacks
   def self.custom_data(conf, event, data)
+    return nil unless conf.enabled
+
     return data unless conf.custom_data.respond_to?(:call)
 
     conf.custom_data.call(event, data)

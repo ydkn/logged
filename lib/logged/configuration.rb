@@ -4,6 +4,7 @@ module Logged
   # logged configuration
   class Configuration < ::ActiveSupport::OrderedOptions
     def self.init_default_options(config, tags = true)
+      config.enabled       = false
       config.ignore        = []
       config.tags          = [] if tags
       config.custom_ignore = nil
@@ -14,6 +15,8 @@ module Logged
     class LoggerOptions < ::ActiveSupport::OrderedOptions
       def initialize
         Configuration.init_default_options(self, false)
+
+        self.enabled = true
       end
     end
 
