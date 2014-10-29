@@ -1,0 +1,10 @@
+AllCops:
+  Exclude:
+    - 'spec/*'
+    - '*.gemspec'
+
+LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 16
