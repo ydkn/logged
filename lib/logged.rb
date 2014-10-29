@@ -13,7 +13,7 @@ module Logged
   extend Logged::LevelConversion
 
   # special keys which not represent a component
-  CONFIG_KEYS = %i( enabled loggers level formatter ignore custom_ignore custom_data tags )
+  CONFIG_KEYS = Configuration::DEFAULT_VALUES.keys + %i( loggers )
 
   mattr_accessor :app, :config
 
@@ -35,7 +35,7 @@ module Logged
 
   # default log level
   def self.default_level
-    config.log_level || :info
+    config.level || :info
   end
 
   # default log formatter
@@ -88,6 +88,7 @@ module Logged
     loggers
   end
 
+  # configure and enable component
   def self.enable_component(component)
     loggers = loggers_for(component)
 
