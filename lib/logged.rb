@@ -44,20 +44,22 @@ module Logged
   end
 
   # logger wrapper for component
-  def self.logger(component)
-    return @component_loggers[component] if @component_loggers.key?(component)
+  def self.logger_by_component(component)
+    key = "component_#{component}"
+
+    return @component_loggers[key] if @component_loggers.key?(key)
 
     loggers = loggers_for(component)
 
     if loggers.blank?
-      @component_loggers[component] = nil
+      @component_loggers[key] = nil
 
       return nil
     end
 
     formatter = config[component].formatter || default_formatter
 
-    @component_loggers[component] = Logger.new(loggers, component, formatter)
+    @component_loggers[key] = Logger.new(loggers, component, formatter)
   end
 
   # loggers for component

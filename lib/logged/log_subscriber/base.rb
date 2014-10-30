@@ -11,7 +11,7 @@ module Logged
       end
 
       def logger
-        @logger ||= Logged.logger(component)
+        @logger ||= Logged.logger_by_component(component)
       end
 
       private
