@@ -39,6 +39,7 @@ module Logged
       def initialize
         Configuration.init_default_options(self)
 
+        self.disable_rails_logging = false
         self.loggers = ::ActiveSupport::OrderedOptions.new { |hash, key| hash[key] = LoggerOptions.new }
       end
     end

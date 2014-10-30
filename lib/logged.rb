@@ -13,7 +13,7 @@ module Logged
   extend Logged::LevelConversion
 
   # special keys which not represent a component
-  CONFIG_KEYS = Configuration::DEFAULT_VALUES.keys + %i( loggers )
+  CONFIG_KEYS = Configuration::DEFAULT_VALUES.keys + %i( loggers disable_rails_logging )
 
   mattr_accessor :app, :config
 
@@ -25,9 +25,9 @@ module Logged
     app.config.middleware.insert_after ::Rails::Rack::Logger, Logged::Rack::Logger
 
     components.each do |component|
-      next unless config[component].enabled
+      remove_rails_subscriber(component) if config[component].disable_rails_logging
 
-      remove_rails_subscriber(component) if config[component].disable_rails_logger
+      next unless config[component].enabled
 
       enable_component(component)
     end
