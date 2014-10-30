@@ -45,6 +45,8 @@ module Logged
 
   # logger wrapper for component
   def self.logger_by_component(component)
+    return nil unless config.enabled
+
     key = "component_#{component}"
 
     return @component_loggers[key] if @component_loggers.key?(key)
@@ -75,19 +77,30 @@ module Logged
     return loggers unless conf.enabled
 
     conf.loggers.each do |name, c|
-      next unless c.enabled
+      logger, options = load_logger(name, c)
 
-      options = c.dup
-      options[:name] = name
-
-      logger = options.delete(:logger)
-
-      next unless logger
+      next unless logger && options
 
       loggers[logger] = options
     end
 
     loggers
+  end
+
+  # load logger from configuration
+  def self.load_logger(name, conf)
+    return [nil, nil] unless conf.enabled
+
+    options = conf.dup
+    options[:name] = name
+
+    logger = options.delete(:logger)
+
+    logger = Rails.logger if logger == :rails
+
+    return [nil, nil] unless logger
+
+    [logger, options]
   end
 
   # configure and enable component
@@ -110,7 +123,8 @@ module Logged
 
   # check if event should be ignored
   def self.ignore?(conf, event)
-    return true unless conf.enabled
+    return false unless event
+    return false unless conf.enabled
 
     if !event.is_a?(String) && conf.ignore.is_a?(Array)
       return true if conf.ignore.include?(event.name)
@@ -125,8 +139,7 @@ module Logged
 
   # run data callbacks
   def self.custom_data(conf, event, data)
-    return nil unless conf.enabled
-
+    return data unless conf.enabled
     return data unless conf.custom_data.respond_to?(:call)
 
     conf.custom_data.call(event, data)

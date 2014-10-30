@@ -13,7 +13,7 @@ module Logged
         load_dependencies
 
         event = LogStash::Event.new(data)
-        event[:message] = @message_formatter.call(data)
+        event[:message] ||= @message_formatter.call(data)
 
         event.to_json
       end
