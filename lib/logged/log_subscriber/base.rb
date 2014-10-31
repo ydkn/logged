@@ -23,13 +23,11 @@ module Logged
 
             progname = yield if block_given? && progname.nil?
 
-            log_data = custom_data(event, progname)
+            return unless progname
 
-            return unless log_data
+            progname['@event'] = event
 
-            log_data['@event'] = event
-
-            logger.#{level}(log_data)
+            logger.#{level}(progname)
           end
         METHOD
       end
@@ -46,13 +44,6 @@ module Logged
         return true if Logged.ignore?(Logged.config[component], event)
 
         false
-      end
-
-      def custom_data(event, data)
-        data = Logged.custom_data(Logged.config, event, data)
-        data = Logged.custom_data(Logged.config[component], event, data)
-
-        data
       end
     end
   end

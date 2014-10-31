@@ -22,6 +22,12 @@ module Logged
 
       event = message.delete('@event')
 
+      message = Logged.custom_data(Logged.config, event, message)
+      return if message.nil?
+
+      message = Logged.custom_data(Logged.config[component], event, message)
+      return if message.nil?
+
       level = Logged.level_to_sym(severity)
 
       @loggers.each do |logger, options|
