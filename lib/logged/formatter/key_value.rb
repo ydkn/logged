@@ -12,7 +12,7 @@ module Logged
       end
 
       def format_key(key, value)
-        # encapsulate in singe quote if value is a string
+        # encapsulate in single quotes if value is a string
         value = "'#{value}'" if value.is_a?(String)
 
         # ensure only two decimals

@@ -3,6 +3,7 @@ require 'active_support/ordered_options'
 module Logged
   # logged configuration
   class Configuration < ::ActiveSupport::OrderedOptions
+    # Default values for configuration options
     DEFAULT_VALUES = {
       enabled:       false,
       level:         nil,

@@ -5,6 +5,7 @@ module Logged
   module LogSubscriber
     # Log subscriber for ActiveRecord events
     class ActiveRecord < Base
+      # This query types will be ignored
       IGNORE_PAYLOAD_NAMES = %w( SCHEMA EXPLAIN )
 
       component :active_record

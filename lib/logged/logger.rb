@@ -15,25 +15,19 @@ module Logged
     end
 
     def add(severity, message = nil, progname = nil)
-      message = yield    if block_given? && message.nil?
-      message = progname if message.nil?
+      message = yield    if block_given? && message.blank?
+      message = progname if message.blank?
 
-      return if message.nil?
+      data, event = extract_data_and_event(message)
 
-      event = message.delete('@event')
-
-      message = Logged.custom_data(Logged.config, event, message)
-      return if message.nil?
-
-      message = Logged.custom_data(Logged.config[component], event, message)
-      return if message.nil?
+      return if data.blank?
 
       level = Logged.level_to_sym(severity)
 
       @loggers.each do |logger, options|
         next unless logger.send("#{level}?")
 
-        add_to_logger(level, event, message, logger, options)
+        add_to_logger(level, event, data, logger, options)
       end
     end
     alias_method :log, :add
@@ -75,13 +69,13 @@ module Logged
     def add_to_logger(level, event, data, logger, options)
       data = prepare_data(event, data, options)
 
-      return unless data
+      return if data.blank?
 
       formatter = options[:formatter] || @formatter
 
       msg = formatter.call(data)
 
-      return unless msg
+      return if msg.blank?
 
       log_data(logger, level, msg)
     end
@@ -94,6 +88,22 @@ module Logged
       else
         logger.send(level, msg)
       end
+    end
+
+    def extract_data_and_event(message)
+      return if message.blank?
+
+      message = { message: message } if message.is_a?(String)
+
+      event = message.delete('@event')
+
+      message = Logged.custom_data(Logged.config, event, message)
+      return [nil, nil] if message.blank?
+
+      message = Logged.custom_data(Logged.config[component], event, message)
+      return [nil, nil] if message.blank?
+
+      [message, event]
     end
   end
 end
