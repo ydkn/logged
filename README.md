@@ -35,6 +35,7 @@ Rails.application.configure do
 
   # Adding a logger
   config.logged.loggers.my.logger = Logger.new(Rails.root.join('log/my.log'))
+  config.logged.loggers.rails.logger = :rails
 
   # Enabling a component
   config.logged.action_controller.enabled = true
@@ -47,6 +48,9 @@ Rails.application.configure do
 
   # Setting the formatter
   config.logged.formatter = Logged::Formatter::JSON.new
+  config.logged.formatter = ->(data) {
+      JSON.dump(data)
+    }
 
   # Setting tags
   config.logged.tags = [ :uuid, 'my-tag' ]
@@ -56,19 +60,19 @@ Rails.application.configure do
 
   # Custom ignore callback
   config.logged.custom_ignore = ->(event) {
-    event.duration.to_f < 0.25
-  }
+      event.duration.to_f < 0.25
+    }
 
   # Modifying the data
-  config.logged.custom_ignore = ->(event, data) {
-    data.merge({ foo: :bar })
-  }
+  config.logged.custom_data = ->(event, data) {
+      data.merge({ foo: :bar })
+    }
 end
 ```
 
 ### Lograge
 
-You can replicate what lograge does by using the following configuration:
+You can replicate the output of lograge by using the following configuration:
 
 ```ruby
 # config/environments/*.rb or config/application.rb
