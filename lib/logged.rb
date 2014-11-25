@@ -71,6 +71,10 @@ module Logged
       .merge(loggers_from_config(config[component]))
   end
 
+  def self.[](component)
+    loggers_for(component)
+  end
+
   # loggers from config level
   def self.loggers_from_config(conf)
     loggers = {}
