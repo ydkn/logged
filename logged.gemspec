@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'logged'
   spec.version       = Logged::VERSION
   spec.authors       = ['Florian Schwab']
-  spec.email         = ['schwab@fsserv.de']
+  spec.email         = ['me@ydkn.de']
   spec.summary       = %q(Better logging for rails)
   spec.homepage      = ''
   spec.license       = 'MIT'
