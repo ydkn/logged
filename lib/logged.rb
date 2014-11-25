@@ -14,7 +14,7 @@ module Logged
   extend Logged::LevelConversion
 
   # special keys which not represent a component
-  CONFIG_KEYS = Configuration::DEFAULT_VALUES.keys + %i( loggers disable_rails_logging )
+  CONFIG_KEYS = Configuration::DEFAULT_VALUES.keys + [:loggers, :disable_rails_logging]
 
   mattr_accessor :app, :config
 
