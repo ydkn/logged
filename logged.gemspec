@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Florian Schwab']
   spec.email         = ['me@ydkn.de']
   spec.summary       = %q(Better logging for rails)
-  spec.homepage      = ''
+  spec.homepage      = 'https://github.com/ydkn/logged'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")
