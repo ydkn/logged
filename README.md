@@ -102,3 +102,12 @@ end
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
+
+
+
+&nbsp;
+
+[![Gem Version](https://img.shields.io/gem/v/logged.svg)](https://rubygems.org/gems/logged)
+[![Dependencies](https://img.shields.io/gemnasium/ydkn/logged.svg)](https://gemnasium.com/ydkn/logged)
+[![Travis CI](https://img.shields.io/travis/ydkn/logged.svg)](https://travis-ci.org/ydkn/logged)
+[![Code Climate](https://img.shields.io/codeclimate/github/ydkn/logged.svg)](https://codeclimate.com/github/ydkn/logged)

@@ -1,3 +1,4 @@
+require 'active_support'
 require 'action_dispatch/http/request'
 
 module Logged
