@@ -18,197 +18,197 @@ module Logged
 
   mattr_accessor :app, :config
 
-  # setup logged
-  def self.setup(app)
-    self.app    = app
-    self.config = app.config.logged
+  class << self
 
-    app.config.middleware.insert_after ::Rails::Rack::Logger, Logged::Rack::Logger
+    # setup logged
+    def setup(app)
+      self.app    = app
+      self.config = app.config.logged
 
-    components.each do |component|
-      remove_rails_subscriber(component) if config[component].disable_rails_logging
+      app.config.middleware.insert_after ::Rails::Rack::Logger, Logged::Rack::Logger
 
-      next unless config[component].enabled
+      components.each do |component|
+        remove_rails_subscriber(component) if config[component].disable_rails_logging
 
-      enable_component(component)
-    end
-  end
+        next unless config[component].enabled
 
-  # default log level
-  def self.default_level
-    config.level || :info
-  end
-
-  # default log formatter
-  def self.default_formatter
-    config.formatter || (@default_formatter ||= Logged::Formatter::KeyValue.new)
-  end
-
-  # logger wrapper for component
-  def self.logger_by_component(component)
-    return nil unless config.enabled
-
-    key = "component_#{component}"
-
-    return @component_loggers[key] if @component_loggers.key?(key)
-
-    loggers = loggers_for(component)
-
-    if loggers.blank?
-      @component_loggers[key] = nil
-
-      return nil
-    end
-
-    formatter = config[component].formatter || default_formatter
-
-    @component_loggers[key] = Logger.new(loggers, component, formatter)
-  end
-
-  # loggers for component
-  def self.loggers_for(component)
-    loggers_from_config(config)
-      .merge(loggers_from_config(config[component]))
-  end
-
-  def self.[](component)
-    loggers_for(component)
-  end
-
-  # loggers from config level
-  def self.loggers_from_config(conf)
-    loggers = {}
-
-    return loggers unless conf.enabled
-
-    conf.loggers.each do |name, c|
-      logger, options = load_logger(name, c)
-
-      next unless logger && options
-
-      loggers[logger] = options
-    end
-
-    loggers
-  end
-
-  # load logger from configuration
-  def self.load_logger(name, conf)
-    return [nil, nil] unless conf.enabled
-
-    options = conf.dup
-    options[:name] = name
-
-    logger = options.delete(:logger)
-
-    logger = Rails.logger if logger == :rails
-
-    return [nil, nil] unless logger
-
-    [logger, options]
-  end
-
-  # configure and enable component
-  def self.enable_component(component)
-    loggers = loggers_for(component)
-
-    loggers.each do |logger, options|
-      level = options[:level] || config[component].level || default_level
-
-      logger.level = level_to_const(level) if logger.respond_to?(:'level=')
-    end
-
-    # only attach subscribers with loggers
-    if loggers.any?
-      @subscribers[component].each do |subscriber|
-        subscriber.attach_to(component)
+        enable_component(component)
       end
     end
-  end
 
-  # check if event should be ignored
-  def self.ignore?(conf, event)
-    return false unless event
-    return false unless conf.enabled
-
-    if !event.is_a?(String) && conf.ignore.is_a?(Array)
-      return true if conf.ignore.include?(event.name)
+    # default log level
+    def default_level
+      config.level || :info
     end
 
-    if conf.custom_ignore.respond_to?(:call)
-      return conf.custom_ignore.call(event)
+    # default log formatter
+    def default_formatter
+      config.formatter || (@default_formatter ||= Logged::Formatter::KeyValue.new)
     end
 
-    false
-  end
+    # logger wrapper for component
+    def logger_by_component(component)
+      return nil unless config.enabled
 
-  # run data callbacks
-  def self.custom_data(conf, event, data)
-    return data unless conf.enabled
-    return data unless conf.custom_data.respond_to?(:call)
+      key = "component_#{component}"
 
-    conf.custom_data.call(event, data)
-  end
+      return @component_loggers[key] if @component_loggers.key?(key)
 
-  # configured components
-  def self.components
-    config.keys - CONFIG_KEYS
-  end
+      loggers = loggers_for(component)
 
-  # remove rails log subscriber by component name
-  def self.remove_rails_subscriber(component)
-    subscriber = rails_subscriber(component)
+      if loggers.blank?
+        @component_loggers[key] = nil
 
-    return unless subscriber
+        return nil
+      end
 
-    unsubscribe(component, subscriber)
-  end
+      formatter = config[component].formatter || default_formatter
 
-  # try to guess and get rails log subscriber by component name
-  def self.rails_subscriber(component)
-    class_name = "::#{component.to_s.camelize}::LogSubscriber"
+      @component_loggers[key] = Logger.new(loggers, component, formatter)
+    end
+    alias :'[]' :logger_by_component
 
-    return unless Object.const_defined?(class_name)
-
-    clazz = class_name.constantize
-
-    ActiveSupport::LogSubscriber.log_subscribers.each do |subscriber|
-      return subscriber if subscriber.is_a?(clazz)
+    # loggers for component
+    def loggers_for(component)
+      loggers_from_config(config)
+        .merge(loggers_from_config(config[component]))
     end
 
-    nil
-  end
+    # loggers from config level
+    def loggers_from_config(conf)
+      loggers = {}
 
-  # unsubscribe a subscriber from a component
-  def self.unsubscribe(component, subscriber)
-    events = subscriber.public_methods(false).reject { |method| method.to_s == 'call' }
+      return loggers unless conf.enabled
 
-    events.each do |event|
-      ActiveSupport::Notifications.notifier.listeners_for("#{event}.#{component}").each do |listener|
-        if listener.instance_variable_get('@delegate') == subscriber
-          ActiveSupport::Notifications.unsubscribe listener
+      conf.loggers.each do |name, c|
+        logger, options = load_logger(name, c)
+
+        next unless logger && options
+
+        loggers[logger] = options
+      end
+
+      loggers
+    end
+
+    # load logger from configuration
+    def load_logger(name, conf)
+      return [nil, nil] unless conf.enabled
+
+      options = conf.dup
+      options[:name] = name
+
+      logger = options.delete(:logger)
+
+      logger = Rails.logger if logger == :rails
+
+      return [nil, nil] unless logger
+
+      [logger, options]
+    end
+
+    # configure and enable component
+    def enable_component(component)
+      loggers = loggers_for(component)
+
+      loggers.each do |logger, options|
+        level = options[:level] || config[component].level || default_level
+
+        logger.level = level_to_const(level) if logger.respond_to?(:'level=')
+      end
+
+      # only attach subscribers with loggers
+      if loggers.any?
+        @subscribers[component].each do |subscriber|
+          subscriber.attach_to(component)
         end
       end
     end
-  end
 
-  # register log subscriber with logged
-  def self.register(component, subscriber)
-    return if @subscribers[component].include?(subscriber)
+    # check if event should be ignored
+    def ignore?(conf, event)
+      return false unless event
+      return false unless conf.enabled
 
-    @subscribers[component] << subscriber
-  end
+      if !event.is_a?(String) && conf.ignore.is_a?(Array)
+        return true if conf.ignore.include?(event.name)
+      end
 
-  def self.request_env
-    Thread.current[:logged_request_env]
-  end
+      if conf.custom_ignore.respond_to?(:call)
+        return conf.custom_ignore.call(event)
+      end
 
-  private
+      false
+    end
 
-  def self.init
-    @subscribers ||= Hash.new { |hash, key| hash[key] = [] }
+    # run data callbacks
+    def custom_data(conf, event, data)
+      return data unless conf.enabled
+      return data unless conf.custom_data.respond_to?(:call)
 
-    @component_loggers = {}
+      conf.custom_data.call(event, data)
+    end
+
+    # configured components
+    def components
+      config.keys - CONFIG_KEYS
+    end
+
+    # remove rails log subscriber by component name
+    def remove_rails_subscriber(component)
+      subscriber = rails_subscriber(component)
+
+      return unless subscriber
+
+      unsubscribe(component, subscriber)
+    end
+
+    # try to guess and get rails log subscriber by component name
+    def rails_subscriber(component)
+      class_name = "::#{component.to_s.camelize}::LogSubscriber"
+
+      return unless Object.const_defined?(class_name)
+
+      clazz = class_name.constantize
+
+      ActiveSupport::LogSubscriber.log_subscribers.each do |subscriber|
+        return subscriber if subscriber.is_a?(clazz)
+      end
+
+      nil
+    end
+
+    # unsubscribe a subscriber from a component
+    def unsubscribe(component, subscriber)
+      events = subscriber.public_methods(false).reject { |method| method.to_s == 'call' }
+
+      events.each do |event|
+        ActiveSupport::Notifications.notifier.listeners_for("#{event}.#{component}").each do |listener|
+          if listener.instance_variable_get('@delegate') == subscriber
+            ActiveSupport::Notifications.unsubscribe listener
+          end
+        end
+      end
+    end
+
+    # register log subscriber with logged
+    def register(component, subscriber)
+      return if @subscribers[component].include?(subscriber)
+
+      @subscribers[component] << subscriber
+    end
+
+    def request_env
+      Thread.current[:logged_request_env]
+    end
+
+    private
+
+    def init
+      @subscribers ||= Hash.new { |hash, key| hash[key] = [] }
+
+      @component_loggers = {}
+    end
   end
 
   init
