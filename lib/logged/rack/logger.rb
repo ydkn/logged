@@ -14,8 +14,6 @@ module Logged
 
         request = ActionDispatch::Request.new(env)
 
-        loggers = Logged.components.map { |c| Logged.logger_by_component(c) }.compact.uniq
-
         if loggers.length > 0
           loggers_tagged(loggers, request) { @app.call(env) }
         else
@@ -26,6 +24,10 @@ module Logged
       end
 
       private
+
+      def loggers
+        @loggers ||= Logged.components.map { |c| Logged.logger_by_component(c) }.compact.uniq
+      end
 
       def loggers_tagged(loggers, request, &block)
         logger = loggers.shift

@@ -9,3 +9,6 @@ LineLength:
 
 Metrics/MethodLength:
   Max: 16
+
+Metrics/CyclomaticComplexity:
+  Max: 8

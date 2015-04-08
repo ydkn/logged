@@ -19,7 +19,6 @@ module Logged
   mattr_accessor :app, :config
 
   class << self
-
     # setup logged
     def setup(app)
       self.app    = app
@@ -27,13 +26,7 @@ module Logged
 
       app.config.middleware.insert_after ::Rails::Rack::Logger, Logged::Rack::Logger
 
-      components.each do |component|
-        remove_rails_subscriber(component) if config[component].disable_rails_logging
-
-        next unless config[component].enabled
-
-        enable_component(component)
-      end
+      setup_components
     end
 
     # default log level
@@ -66,7 +59,7 @@ module Logged
 
       @component_loggers[key] = Logger.new(loggers, component, formatter)
     end
-    alias :'[]' :logger_by_component
+    alias_method :'[]', :logger_by_component
 
     # loggers for component
     def loggers_for(component)
@@ -111,6 +104,8 @@ module Logged
     def enable_component(component)
       loggers = loggers_for(component)
 
+      return unless loggers.any?
+
       loggers.each do |logger, options|
         level = options[:level] || config[component].level || default_level
 
@@ -118,10 +113,8 @@ module Logged
       end
 
       # only attach subscribers with loggers
-      if loggers.any?
-        @subscribers[component].each do |subscriber|
-          subscriber.attach_to(component)
-        end
+      @subscribers[component].each do |subscriber|
+        subscriber.attach_to(component)
       end
     end
 
@@ -130,13 +123,9 @@ module Logged
       return false unless event
       return false unless conf.enabled
 
-      if !event.is_a?(String) && conf.ignore.is_a?(Array)
-        return true if conf.ignore.include?(event.name)
-      end
+      return true if !event.is_a?(String) && conf.ignore.is_a?(Array) && conf.ignore.include?(event.name)
 
-      if conf.custom_ignore.respond_to?(:call)
-        return conf.custom_ignore.call(event)
-      end
+      return conf.custom_ignore.call(event) if conf.custom_ignore.respond_to?(:call)
 
       false
     end
@@ -203,6 +192,16 @@ module Logged
     end
 
     private
+
+    def setup_components
+      components.each do |component|
+        remove_rails_subscriber(component) if config[component].disable_rails_logging
+
+        next unless config[component].enabled
+
+        enable_component(component)
+      end
+    end
 
     def init
       @subscribers ||= Hash.new { |hash, key| hash[key] = [] }
