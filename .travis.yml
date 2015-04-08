@@ -8,3 +8,6 @@ gemfile:
   - Gemfile
 
 script: bundle exec rake spec
+
+before_install:
+  - gem install bundler -v '~> 1.9'
