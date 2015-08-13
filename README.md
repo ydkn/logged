@@ -29,12 +29,11 @@ Or install it yourself as:
 
 ## Usage
 
-### Overview
+### Configuration overview
 
 ```ruby
 # config/environments/*.rb or config/application.rb
 Rails.application.configure do
-
   # Enabling it
   config.logged.enabled = true
 
@@ -74,6 +73,28 @@ Rails.application.configure do
     }
 end
 ```
+
+### Logging
+
+Get wrapping logger:
+```ruby
+logger = Logged.logger_by_component(:foo)
+```
+
+Actual logging:
+```ruby
+logger = Logged.logger_by_component(:foo)
+logger.info('bar')
+```
+
+Disable/Enable logger:
+```ruby
+logger = Logged.logger_by_component(:foo)
+logger.disable!
+logger.info('bar') # doesn't get logged
+logger.enable!
+```
+
 
 ### Lograge
 

@@ -12,9 +12,12 @@ module Logged
       @loggers   = loggers
       @component = component
       @formatter = formatter
+      @enabled   = true
     end
 
     def add(severity, message = nil, progname = nil)
+      return unless enabled?
+
       message = yield    if block_given? && message.blank?
       message = progname if message.blank?
 
@@ -55,6 +58,22 @@ module Logged
     def datetime_format=(_format); end
 
     def <<(_msg); end
+
+    def enabled?
+      @enabled
+    end
+
+    def enabled=(enable)
+      @enabled = !!enable
+    end
+
+    def enable!
+      self.enabled = true
+    end
+
+    def disable!
+      self.enabled = false
+    end
 
     private
 
