@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'logged/version'
 
 Gem::Specification.new do |spec|
-  rails_version      = '>= 4.0', '< 5.0'
+  rails_version      = '>= 4.0', '< 5.1'
 
   spec.name          = 'logged'
   spec.version       = Logged::VERSION
@@ -19,9 +19,9 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'bundler',      '~> 1.9'
-  spec.add_development_dependency 'rake',         '~> 10.4'
-  spec.add_development_dependency 'rspec',        '~> 3.2'
+  spec.add_development_dependency 'bundler',      '~> 1.12'
+  spec.add_development_dependency 'rake',         '~> 10.5'
+  spec.add_development_dependency 'rspec',        '~> 3.5'
   spec.add_development_dependency 'rails',        rails_version
   spec.add_development_dependency 'actionpack',   rails_version
   spec.add_development_dependency 'actionview',   rails_version

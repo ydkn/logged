@@ -1,5 +1,5 @@
 require 'active_support'
-require 'action_dispatch/http/request'
+require 'action_dispatch'
 
 module Logged
   module Rack
