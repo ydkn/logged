@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## 0.1.1 (2016-09-16)
 ### Changes
 - Rails 5.0 compatibility
 
