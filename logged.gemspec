@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'logged/version'
 
 Gem::Specification.new do |spec|
-  rails_version      = '>= 4.0', '< 5.1'
+  rails_version      = '>= 4.0', '< 6.0'
 
   spec.name          = 'logged'
   spec.version       = Logged::VERSION
